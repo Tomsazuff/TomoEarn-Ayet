@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>TomoEarn — AYET Videos</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      background: #101827;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      padding: 25px;
+      border-radius: 20px;
+      background: #1b2638;
+      border: 1px solid #34445c;
+    }
+
+    h1 { margin-top: 0; }
+
+    p {
+      color: #b9c6d9;
+      line-height: 1.6;
+    }
+
+    label {
+      display: block;
+      margin: 20px 0 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #50617a;
+      border-radius: 10px;
+      background: #101827;
+      color: white;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 15px;
+      border: 0;
+      border-radius: 10px;
+      background: #63e6be;
+      color: #10251f;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    #status {
+      margin-top: 18px;
+      padding: 13px;
+      border-radius: 10px;
+      background: #101827;
+      color: #dce6f5;
+      line-height: 1.5;
+    }
+
+    .tag {
+      color: #63e6be;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <div class="tag">TOMO EARN · AYET REWARDED VIDEO</div>
+
+    <h1>Pozeraj videá</h1>
+
+    <p>
+      Spusti dostupnú odmeňovanú reklamu cez AYET.
+      Žiadny umelý časovač ani ukážkové video.
+    </p>
+
+    <label for="userId">Používateľské ID</label>
+    <input
+      id="userId"
+      type="text"
+      maxlength="64"
+      autocomplete="username"
+      placeholder="Zadaj svoje ID"
+    >
+
+    <button id="watchButton" type="button">
+      ▶ Spustiť reklamné video
+    </button>
+
+    <div id="status" role="status" aria-live="polite">
+      AYET placement ešte nie je nastavený.
+    </div>
+
+    <p style="font-size:12px">
+      Odmena sa pripíše až po overení potvrdenia zo servera AYET.
+    </p>
+  </main>
+
+  <script src="https://cdn.ayet.io/offerwall/js/ayetvideosdk.min.js"></script>
+
+  <script>
+    (() => {
+      // Sem vlož skutočné Placement ID z AYET.
+      const AYET_PLACEMENT_ID = "DOPLN_PLACEMENT_ID";
+
+      const button = document.getElementById("watchButton");
+      const status = document.getElementById("status");
+      const userInput = document.getElementById("userId");
+
+      function showStatus(message) {
+        status.textContent = message;
+      }
+
+      button.addEventListener("click", () => {
+        const userId = userInput.value.trim();
+
+        if (!userId) {
+          showStatus("Najprv zadaj svoje používateľské ID.");
+          userInput.focus();
+          return;
+        }
+
+        if (AYET_PLACEMENT_ID === "DOPLN_PLACEMENT_ID") {
+          showStatus(
+            "Najprv vytvor AYET Website / Rewarded Video placement a vlož jeho ID do kódu."
+          );
+          return;
+        }
+
+        if (!window.AyetVideoSdk) {
+          showStatus("AYET SDK sa nenačítalo. Skús obnoviť stránku.");
+          return;
+        }
+
+        button.disabled = true;
+        showStatus("Hľadám dostupnú reklamu…");
+
+        try {
+          window.AyetVideoSdk.init(
+            AYET_PLACEMENT_ID,
+            userId
+          );
+
+          window.AyetVideoSdk.requestAd(
+            "default",
+
+            () => {
+              showStatus("Reklama je pripravená.");
+
+              try {
+                window.AyetVideoSdk.playFullsizeAd();
+              } catch (error) {
+                showStatus("Reklamu sa nepodarilo spustiť.");
+              }
+
+              button.disabled = false;
+            },
+
+            () => {
+              showStatus(
+                "Momentálne nie je dostupná reklama. Skús neskôr."
+              );
+              button.disabled = false;
+            }
+          );
+        } catch (error) {
+          showStatus(
+            "Chyba AYET. Skontroluj Placement ID a nastavenie účtu."
+          );
+          button.disabled = false;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
